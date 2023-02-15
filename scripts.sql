@@ -3,23 +3,50 @@
 SELECT npi, SUM(total_claim_count)
 FROM prescription
 GROUP BY npi 
-ORDER BY SUM(total_claim_count) DESC;
+ORDER BY SUM(total_claim_count) DESC
+LIMIT 1;
 
 -1881634483/99707
   
    
     b. Repeat the above, but this time report the nppes_provider_first_name, nppes_provider_last_org_name,  specialty_description, and the total number of claims.
 
-SELECT pr.nppes_provider_first_name, pr.nppes_provider_last_org_name, pr.specialty_description, pn.total_claim_count
+SELECT pr.nppes_provider_first_name, pr.nppes_provider_last_org_name, pr.specialty_description, COUNT(pn.total_claim_count)
 FROM prescriber AS pr
 LEFT JOIN prescription AS pn
 ON pr.npi = pn.npi
-GROUP BY pr.nppes_provider_first_name, pr.nppes_provider_last_org_name, pr.specialty_description, pn.total_claim_count 
+GROUP BY pr.nppes_provider_first_name, pr.nppes_provider_last_org_name, pr.specialty_description
+ORDER BY COUNT(pn.total_claim_count) DESC
+LIMIT 1;
+
+-John Williams, Internal Medicine, 528
 
 2. 
     a. Which specialty had the most total number of claims (totaled over all drugs)?
+	
+SELECT pr.specialty_description, COUNT(pn.total_claim_count)
+FROM prescriber AS pr
+LEFT JOIN prescription AS pn
+ON pr.npi = pn.npi
+GROUP BY pr.specialty_description
+ORDER BY COUNT(pn.total_claim_count) DESC;
+
+-Nurse Practitioner, 5991
 
     b. Which specialty had the most total number of claims for opioids?
+	
+SELECT pr.specialty_description, d.opioid_drug_flag, COUNT(pn.total_claim_count)
+FROM prescriber AS pr
+LEFT JOIN prescription AS pn
+ON pr.npi = pn.npi
+LEFT JOIN drug AS d
+ON pn.drug_name = d.drug_name
+WHERE d.opioid_drug_flag = 'Y'
+GROUP BY pr.specialty_description, d.opioid_drug_flag 
+ORDER BY COUNT(pn.total_claim_count) DESC
+LIMIT 1;
+
+-Nurse Practitioner, 9551
 
     c. **Challenge Question:** Are there any specialties that appear in the prescriber table that have no associated prescriptions in the prescription table?
 
@@ -27,8 +54,27 @@ GROUP BY pr.nppes_provider_first_name, pr.nppes_provider_last_org_name, pr.speci
 
 3. 
     a. Which drug (generic_name) had the highest total drug cost?
+	SELECT d.generic_name, COUNT(pn.total_drug_cost)
+	FROM drug AS d
+	LEFT JOIN prescription AS pn
+	ON d.drug_name = pn.drug_name
+	GROUP BY d.generic_name
+	ORDER BY COUNT(pn.total_drug_cost) DESC
+	LIMIT 1;
+	
+	-HYDROCODONE/ACETAMINOPHEN, 9618
 
     b. Which drug (generic_name) has the hightest total cost per day? **Bonus: Round your cost per day column to 2 decimal places. Google ROUND to see how this works.**
+
+SELECT d.generic_name, ROUND(pn.total_drug_cost), 2
+	FROM drug AS d
+	LEFT JOIN prescription AS pn
+	ON d.drug_name = pn.drug_name
+	GROUP BY d.generic_name
+	ORDER BY  ROUND(pn.total_drug_cost),2 DESC
+	 
+	 SELECT *
+	 FROM prescription
 
 4. 
     a. For each drug in the drug table, return the drug name and then a column named 'drug_type' which says 'opioid' for drugs which have opioid_drug_flag = 'Y', says 'antibiotic' for those drugs which have antibiotic_drug_flag = 'Y', and says 'neither' for all other drugs.
