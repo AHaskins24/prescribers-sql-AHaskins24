@@ -66,15 +66,19 @@ LIMIT 1;
 
     b. Which drug (generic_name) has the hightest total cost per day? **Bonus: Round your cost per day column to 2 decimal places. Google ROUND to see how this works.**
 
-SELECT d.generic_name, ROUND(pn.total_drug_cost), 2
+SELECT d.generic_name, ROUND(SUM(pn.total_drug_cost / 30), 2) AS cost_per_day
 	FROM drug AS d
 	LEFT JOIN prescription AS pn
 	ON d.drug_name = pn.drug_name
+	WHERE pn.total_drug_cost IS NOT NULL
 	GROUP BY d.generic_name
-	ORDER BY  ROUND(pn.total_drug_cost),2 DESC
+	ORDER BY  ROUND(SUM(pn.total_drug_cost / 30),2) DESC
+	LIMIT 1;
+	
+	-INSULIN GLARGINE, $3,475,468.88
+	
 	 
-	 SELECT *
-	 FROM prescription
+	
 
 4. 
     a. For each drug in the drug table, return the drug name and then a column named 'drug_type' which says 'opioid' for drugs which have opioid_drug_flag = 'Y', says 'antibiotic' for those drugs which have antibiotic_drug_flag = 'Y', and says 'neither' for all other drugs.
